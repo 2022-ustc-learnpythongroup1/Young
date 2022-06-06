@@ -3,12 +3,12 @@
 import sys
 import time
 import urllib
-import  urllib.request as urllib2
-import requests
+import  urllib.request
 import numpy as np
 from bs4 import BeautifulSoup
 from openpyxl import Workbook
-import lxml
+from urllib.parse import quote
+
 
 
 
@@ -19,21 +19,22 @@ hds=[{'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) 
 
 
 def book_spider(book_tag):
-    page_num=0;
+    page_num=0
     book_list=[]
     try_times=0
     
     while(1):
         #url='http://www.douban.com/tag/%E5%B0%8F%E8%AF%B4/book?start=0' # For Test
-        url='http://www.douban.com/tag/'+urllib2.quote(book_tag)+'/book?start='+str(page_num*15)
-        time.sleep(10)
+        url='http://www.douban.com/tag/'+quote(book_tag)+'/book?start='+str(page_num*15)
+        time.sleep(2)
         
+        print(url)
         #Last Version
         try:
-            req = urllib2.Request(url, headers=hds[page_num%len(hds)])
-            source_code = urllib2.urlopen(req).read()
+            req = urllib.request.Request(url, headers=hds[page_num%len(hds)])
+            source_code = urllib.request.urlopen(req).read()
             plain_text=str(source_code)   
-        except (urllib2.HTTPError, urllib2.URLError) as e:
+        except (urllib.request.HTTPError, urllib.request.URLError) as e:
             print(e)
             continue
   
@@ -44,16 +45,14 @@ def book_spider(book_tag):
         # with open('test.txt', 'w', encoding='utf-8')as fp:
         #     fp.write(plain_text)
 
-        
-
-        soup = BeautifulSoup(plain_text,features="lxml")
+        soup = BeautifulSoup(plain_text, features="lxml")
         list_soup = soup.find('div', {'class': 'mod book-list'})
-        
+         
         # with open('test1.txt', 'w', encoding='utf-8')as fp:
         #     fp.write(str(list_soup))
         
-        try_times+=1;
-        if list_soup==None and try_times<10:
+        try_times += 1
+        if list_soup==None and try_times < 200:
             continue
         elif list_soup==None or len(list_soup)<=1:
             break # Break when no informatoin got after 200 times requesting
@@ -93,12 +92,12 @@ def book_spider(book_tag):
 def get_people_num(url):
     #url='http://book.douban.com/subject/6082808/?from=tag_all' # For Test
     try:
-        req = urllib2.Request(url, headers=hds[np.random.randint(0,len(hds))])
-        source_code = urllib2.urlopen(req).read()
+        req = urllib.request.Request(url, headers=hds[np.random.randint(0,len(hds))])
+        source_code = urllib.request.urlopen(req).read()
         plain_text=str(source_code)   
-    except (urllib2.HTTPError, urllib2.URLError)as e:
+    except (urllib.request.HTTPError, urllib.request.URLError)as e:
         print (e)
-    soup = BeautifulSoup(plain_text)
+    soup = BeautifulSoup(plain_text, features="lxml")
     people_num=soup.find('div',{'class':'rating_sum'}).findAll('span')[1].string.strip()
     return people_num
 
